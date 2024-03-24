@@ -9,7 +9,8 @@ public class Product {
     private String description;
     private int purchasePrice;
     private int quantity;
-    private List<SellDetail> sellListDetails = new ArrayList<>();
+    private List<SellDetail> sellDetailsList = new ArrayList<>();
+    private List<IncomeDetail> incomeDetailList = new ArrayList<>();
 
     public Product(int id, String name, String description, int purchasePrice, int quantity) {
         this.id = id;
@@ -59,30 +60,44 @@ public class Product {
         this.quantity = quantity;
     }
 
-    public List<SellDetail> getSellListDetails() {
-        return sellListDetails;
+    public List<SellDetail> getsellDetailsList() {
+        return sellDetailsList;
     }
 
-    public void setSellListDetails(List<SellDetail> sellListDetails) {
-        this.sellListDetails = sellListDetails;
+    public void setsellDetailsList(List<SellDetail> sellDetailsList) {
+        this.sellDetailsList = sellDetailsList;
     }
 
     public void addSellDetail(SellDetail sellDetail){
         
-        int size = this.sellListDetails.size();
+        int size = this.sellDetailsList.size();
 
         if (size < this.quantity) {
             int id = 0;
 
             if(size > 0){
-                id = sellListDetails.get(size-1).getId() + 1;
+                id = sellDetailsList.get(size-1).getId() + 1;
             }
             
             sellDetail.setId(id);
     
-            this.sellListDetails.add(sellDetail);
+            this.sellDetailsList.add(sellDetail);
         }
         
+    }
+
+    public List<SellDetail> getSellDetailsList() {
+        return sellDetailsList;
+    }
+
+    public List<IncomeDetail> getIncomeDetailList() {
+        return incomeDetailList;
+    }
+
+    public IncomeDetail addIncomeDetail(IncomeDetail incomeDetail){
+        incomeDetail.setId(this.incomeDetailList.size()+1);
+        this.incomeDetailList.add(incomeDetail);
+        return incomeDetail;
     }
 
 }
