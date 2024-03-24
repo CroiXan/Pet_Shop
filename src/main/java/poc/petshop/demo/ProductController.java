@@ -26,10 +26,12 @@ public class ProductController {
         productList.add(new Product(1, "plato verde", "plato plastico color verde", 2000, 100));
         productList.get(0).addSellDetail(new SellDetail(3000, LocalDateTime.of(2023, Month.DECEMBER, 15, 15, 35, 0)));
         productList.get(0).addSellDetail(new SellDetail(3000, LocalDateTime.of(2023, Month.DECEMBER, 15, 16, 20, 0)));
+        productList.get(0).addSellDetail(new SellDetail(4000, LocalDateTime.of(2024, Month.FEBRUARY, 12, 15,40, 0)));
         productList.get(0).addSellDetail(new SellDetail(2500, LocalDateTime.of(2024, Month.MARCH, 19, 10, 00, 0)));
         productList.get(0).addSellDetail(new SellDetail(2500, LocalDateTime.of(2024, Month.MARCH, 19, 15, 51, 0)));
         productList.get(0).addSellDetail(new SellDetail(3200, LocalDateTime.of(2024, Month.MARCH, 20, 14, 13, 0)));
         productList.get(0).addSellDetail(new SellDetail(3200, LocalDateTime.of(2024, Month.MARCH, 20, 16,48, 0)));
+        
     }
     
     @GetMapping("/product")
@@ -118,7 +120,42 @@ public class ProductController {
 
         return buildResponseError(HttpStatus.NOT_FOUND,"producto no encontrado");
     }
-    
+
+    @GetMapping("/product/profit/{year}-{month}-{day}")
+    public ResponseEntity<?> calcAllProfitByDate(@PathVariable String year,@PathVariable String month,@PathVariable String day) {
+
+        int parsedYear = validateYear(year);
+        int parsedMonth = validateMonth(month);
+        int parsedDay = validateDay(day);
+        String period = year + "";
+        double allIncome = 0.0;
+        double allEarning = 0.0;
+        IncomeDetail localIncomeCalc = new IncomeDetail(LocalDateTime.now(), "", 0, 0);
+
+        if (parsedYear == -1 || parsedMonth == -1 || parsedDay == -1) {
+            return error;
+        }
+
+        if(parsedMonth > 0 ){
+            period += "-"+month;
+            if (parsedDay > 0) {
+                period += "-"+day;
+            }
+        }
+
+        localIncomeCalc.setPeriod(period);
+
+        for (Product product : productList) {
+            IncomeDetail incomeDetail = calcEarning(product, parsedYear, parsedMonth, parsedDay);
+            allIncome += incomeDetail.getIncome();
+            allEarning += incomeDetail.getEarning();
+        }
+
+        localIncomeCalc.setIncome(allIncome);
+        localIncomeCalc.setEarning(allEarning);
+
+        return  ResponseEntity.ok(localIncomeCalc);
+    }
 
     private int validateInteger(String intAsStr,String paramName){
         try {
@@ -200,10 +237,10 @@ public class ProductController {
     private IncomeDetail calcEarning(Product product,int year, int month, int day){
         double income = 0.0;
         double earning = 0.0;
-        String period = year+"-";
+        String period = year+"";
 
         if (month > 0) {
-            period += month;
+            period += "-" + month;
         }
 
         if(year > 0 && month > 0 && day > 0){
@@ -213,10 +250,8 @@ public class ProductController {
                 period += "-" + day;
                 for (SellDetail sellDetail : product.getsellDetailsList()) {
                     if (sellDetail.getSellDateTime().toLocalDate().equals(searchDate)) {
-                        System.out.println(sellDetail.getId());
                         income += sellDetail.getSellPrice();
                         earning += sellDetail.getSellPrice() * 0.81 - product.getPurchasePrice();
-                        System.out.println("-------");
                     }
                 }
 
@@ -226,16 +261,11 @@ public class ProductController {
             }
         }else{
             for (SellDetail sellDetail : product.getsellDetailsList()) {
-                System.out.println(sellDetail.getSellDateTime().getYear());
-                System.out.println(sellDetail.getSellDateTime().getMonthValue());
                 
                 if ( sellDetail.getSellDateTime().getYear() == year && ( month == 0 || sellDetail.getSellDateTime().getMonthValue() == month ) ) {
-                    System.out.println(sellDetail.getId());
-                    System.out.println("calc+" + sellDetail.getSellPrice());
                     income += sellDetail.getSellPrice();
                     earning += sellDetail.getSellPrice() * 0.81 - product.getPurchasePrice();
                 }
-                System.out.println("-------");
             }
         }
         
