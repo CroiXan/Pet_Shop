@@ -86,10 +86,6 @@ public class Product {
         
     }
 
-    public List<SellDetail> getSellDetailsList() {
-        return sellDetailsList;
-    }
-
     public List<IncomeDetail> getIncomeDetailList() {
         return incomeDetailList;
     }

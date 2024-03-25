@@ -1,5 +1,6 @@
 package poc.petshop.demo;
 
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -23,6 +24,7 @@ public class ProductController {
     private ResponseEntity<ErrorMessage> error = ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage(HttpStatus.NOT_FOUND.value(),"producto no encontrado"));
 
     public ProductController() {
+
         productList.add(new Product(1, "plato verde", "plato plastico color verde", 2000, 100));
         productList.get(0).addSellDetail(new SellDetail(3000, LocalDateTime.of(2023, Month.DECEMBER, 15, 15, 35, 0)));
         productList.get(0).addSellDetail(new SellDetail(3000, LocalDateTime.of(2023, Month.DECEMBER, 15, 16, 20, 0)));
@@ -32,6 +34,27 @@ public class ProductController {
         productList.get(0).addSellDetail(new SellDetail(3200, LocalDateTime.of(2024, Month.MARCH, 20, 14, 13, 0)));
         productList.get(0).addSellDetail(new SellDetail(3200, LocalDateTime.of(2024, Month.MARCH, 20, 16,48, 0)));
         
+        productList.add(new Product(2, "correa con collar gato", "correa confortable para gato incluye correa", 5000, 30));
+        productList.get(1).addSellDetail(new SellDetail(10000, LocalDateTime.of(2023, Month.NOVEMBER, 15, 0, 0, 0)));
+        productList.get(1).addSellDetail(new SellDetail(12000, LocalDateTime.of(2023, Month.DECEMBER, 20, 0, 0, 0)));
+        productList.get(1).addSellDetail(new SellDetail(11500, LocalDateTime.of(2024, Month.JANUARY, 6, 0, 0, 0)));
+        productList.get(1).addSellDetail(new SellDetail(10500, LocalDateTime.of(2024, Month.JANUARY, 18, 0, 0, 0)));
+        productList.get(1).addSellDetail(new SellDetail(9000, LocalDateTime.of(2024, Month.FEBRUARY, 5, 0, 0, 0)));
+
+        productList.add(new Product(3, "canil para perro mediano", "canil para perro, soporta 30 kg", 40000, 12));
+        productList.get(2).addSellDetail(new SellDetail(70000, LocalDateTime.of(2023, Month.DECEMBER, 17, 0, 0, 0)));
+        productList.get(2).addSellDetail(new SellDetail(85000, LocalDateTime.of(2024, Month.JANUARY, 4, 0, 0, 0)));
+        productList.get(2).addSellDetail(new SellDetail(85000, LocalDateTime.of(2024, Month.JANUARY, 26, 0, 0, 0)));
+        productList.get(2).addSellDetail(new SellDetail(78000, LocalDateTime.of(2024, Month.FEBRUARY, 24, 0, 0, 0)));
+        productList.get(2).addSellDetail(new SellDetail(80000, LocalDateTime.of(2024, Month.MARCH, 10, 0, 0, 0)));
+
+        productList.add(new Product(4, "casa de perro", "casa plastica de perro raza pequeña", 30000, 8));
+        productList.get(3).addSellDetail(new SellDetail(75000, LocalDateTime.of(2023, Month.NOVEMBER, 23, 0, 0, 0)));
+        productList.get(3).addSellDetail(new SellDetail(70500, LocalDateTime.of(2023, Month.NOVEMBER, 12, 0, 0, 0)));
+        productList.get(3).addSellDetail(new SellDetail(55000, LocalDateTime.of(2023, Month.DECEMBER, 9, 0, 0, 0)));
+        productList.get(3).addSellDetail(new SellDetail(80000, LocalDateTime.of(2024, Month.FEBRUARY, 28, 0, 0, 0)));
+        productList.get(3).addSellDetail(new SellDetail(85000, LocalDateTime.of(2024, Month.FEBRUARY, 2, 0, 0, 0)));
+
     }
     
     @GetMapping("/product")
@@ -55,7 +78,7 @@ public class ProductController {
             }
         }
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage(HttpStatus.NOT_FOUND.value(),"producto no encontrado"));
+        return buildResponseError(HttpStatus.NOT_FOUND,"producto no encontrado");
     }
 
     @GetMapping("/product/{id}/sell/{price}")
@@ -91,7 +114,7 @@ public class ProductController {
 
         for (Product product : productList) {
             if (parsedId == product.getId()) {
-                product.addSellDetail(new SellDetail(parsedPrice, LocalDateTime.now()));
+                product.addSellDetail(new SellDetail(parsedPrice, parsedDate));
                 return ResponseEntity.ok(product);
             }
         }
@@ -268,8 +291,10 @@ public class ProductController {
                 }
             }
         }
+
+        DecimalFormat format = new DecimalFormat("#.##");
         
-        return product.addIncomeDetail(new IncomeDetail(LocalDateTime.now(), period, income, Math.round(earning)));
+        return product.addIncomeDetail(new IncomeDetail(LocalDateTime.now(), period, income,Double.parseDouble(format.format(earning))));
         
     }
     
