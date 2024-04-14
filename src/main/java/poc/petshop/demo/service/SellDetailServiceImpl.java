@@ -42,4 +42,9 @@ public class SellDetailServiceImpl implements SellDetailService{
         return null;
     }
 
+    @Override
+    public boolean existsSellDetailById(Long id) {
+        return sellDetailRepository.existsById(id);
+    }
+
 }

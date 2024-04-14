@@ -8,6 +8,7 @@ import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,14 +16,21 @@ import poc.petshop.demo.model.ErrorMessage;
 import poc.petshop.demo.model.IncomeDetail;
 import poc.petshop.demo.model.Product;
 import poc.petshop.demo.model.SellDetail;
+import poc.petshop.demo.service.IncomeDetailService;
 import poc.petshop.demo.service.ProductService;
+import poc.petshop.demo.service.SellDetailService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 
 
@@ -33,42 +41,14 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
+    @Autowired
+    private SellDetailService sellDetailService;
+
+    @Autowired
+    private IncomeDetailService incomeDetailService;
+
     private List<Product> productList = new ArrayList<>();
     private ResponseEntity<ErrorMessage> error = ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage(HttpStatus.NOT_FOUND.value(),"producto no encontrado"));
-
-    public ProductController() {
-
-        productList.add(new Product(1L, "plato verde", "plato plastico color verde", 2000, 100));
-        productList.get(0).addSellDetail(new SellDetail(3000, LocalDateTime.of(2023, Month.DECEMBER, 15, 15, 35, 0)));
-        productList.get(0).addSellDetail(new SellDetail(3000, LocalDateTime.of(2023, Month.DECEMBER, 15, 16, 20, 0)));
-        productList.get(0).addSellDetail(new SellDetail(4000, LocalDateTime.of(2024, Month.FEBRUARY, 12, 15,40, 0)));
-        productList.get(0).addSellDetail(new SellDetail(2500, LocalDateTime.of(2024, Month.MARCH, 19, 10, 00, 0)));
-        productList.get(0).addSellDetail(new SellDetail(2500, LocalDateTime.of(2024, Month.MARCH, 19, 15, 51, 0)));
-        productList.get(0).addSellDetail(new SellDetail(3200, LocalDateTime.of(2024, Month.MARCH, 20, 14, 13, 0)));
-        productList.get(0).addSellDetail(new SellDetail(3200, LocalDateTime.of(2024, Month.MARCH, 20, 16,48, 0)));
-        
-        productList.add(new Product(2L, "correa con collar gato", "correa confortable para gato incluye correa", 5000, 30));
-        productList.get(1).addSellDetail(new SellDetail(10000, LocalDateTime.of(2023, Month.NOVEMBER, 15, 0, 0, 0)));
-        productList.get(1).addSellDetail(new SellDetail(12000, LocalDateTime.of(2023, Month.DECEMBER, 20, 0, 0, 0)));
-        productList.get(1).addSellDetail(new SellDetail(11500, LocalDateTime.of(2024, Month.JANUARY, 6, 0, 0, 0)));
-        productList.get(1).addSellDetail(new SellDetail(10500, LocalDateTime.of(2024, Month.JANUARY, 18, 0, 0, 0)));
-        productList.get(1).addSellDetail(new SellDetail(9000, LocalDateTime.of(2024, Month.FEBRUARY, 5, 0, 0, 0)));
-
-        productList.add(new Product(3L, "canil para perro mediano", "canil para perro, soporta 30 kg", 40000, 12));
-        productList.get(2).addSellDetail(new SellDetail(70000, LocalDateTime.of(2023, Month.DECEMBER, 17, 0, 0, 0)));
-        productList.get(2).addSellDetail(new SellDetail(85000, LocalDateTime.of(2024, Month.JANUARY, 4, 0, 0, 0)));
-        productList.get(2).addSellDetail(new SellDetail(85000, LocalDateTime.of(2024, Month.JANUARY, 26, 0, 0, 0)));
-        productList.get(2).addSellDetail(new SellDetail(78000, LocalDateTime.of(2024, Month.FEBRUARY, 24, 0, 0, 0)));
-        productList.get(2).addSellDetail(new SellDetail(80000, LocalDateTime.of(2024, Month.MARCH, 10, 0, 0, 0)));
-
-        productList.add(new Product(4L, "casa de perro", "casa plastica de perro raza pequeña", 30000, 8));
-        productList.get(3).addSellDetail(new SellDetail(75000, LocalDateTime.of(2023, Month.NOVEMBER, 23, 0, 0, 0)));
-        productList.get(3).addSellDetail(new SellDetail(70500, LocalDateTime.of(2023, Month.NOVEMBER, 12, 0, 0, 0)));
-        productList.get(3).addSellDetail(new SellDetail(55000, LocalDateTime.of(2023, Month.DECEMBER, 9, 0, 0, 0)));
-        productList.get(3).addSellDetail(new SellDetail(80000, LocalDateTime.of(2024, Month.FEBRUARY, 28, 0, 0, 0)));
-        productList.get(3).addSellDetail(new SellDetail(85000, LocalDateTime.of(2024, Month.FEBRUARY, 2, 0, 0, 0)));
-
-    }
     
     @GetMapping
     public ResponseEntity<List<Product>> getProducts(){
@@ -79,26 +59,110 @@ public class ProductController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getProductById(@PathVariable String id) {
 
-        int parsedId = validateInteger(id,"id");
+        Long parsedId = validateInteger(id,"id");
+        Optional<Product> product = productService.getProductById(parsedId);
 
-        if(parsedId==-1){
+        if (product.isEmpty()) {
+            return buildResponseError(HttpStatus.NOT_FOUND,"producto no encontrado");
+        }
+
+        return ResponseEntity.ok(product);
+    
+    }
+
+    @PostMapping
+    public ResponseEntity<?> postAddProduct(@RequestBody Product product) {
+        
+        if(product.getId() < 0L){
+            return buildResponseError(HttpStatus.BAD_REQUEST,"id no puede ser un valor negativo");
+        }
+
+        if (product.getName().length() == 0) {
+            return buildResponseError(HttpStatus.BAD_REQUEST,"name no puede estar vacio");
+        }
+
+        if (product.getDescription().length() == 0) {
+            return buildResponseError(HttpStatus.BAD_REQUEST,"description no puede estar vacio");
+        }
+
+        if (product.getPurchasePrice() <= 0) {
+            return buildResponseError(HttpStatus.BAD_REQUEST,"PurchasePrice no puede ser un valor negativo ni cero");
+        }
+        
+        if (product.getQuantity() <= 0) {
+            return buildResponseError(HttpStatus.BAD_REQUEST,"Quantity no puede ser un valor negativo ni cero");
+        }
+        
+        return ResponseEntity.ok(productService.createProduct(product));
+    }
+
+    @PutMapping
+    public ResponseEntity<?> updateProduct(@RequestBody Product product) {
+        
+        if(product.getId() < 0L){
+            return buildResponseError(HttpStatus.BAD_REQUEST,"id no puede ser un valor negativo");
+        }
+
+        if (product.getName().length() == 0) {
+            return buildResponseError(HttpStatus.BAD_REQUEST,"name no puede estar vacio");
+        }
+
+        if (product.getDescription().length() == 0) {
+            return buildResponseError(HttpStatus.BAD_REQUEST,"description no puede estar vacio");
+        }
+
+        if (product.getPurchasePrice() <= 0) {
+            return buildResponseError(HttpStatus.BAD_REQUEST,"PurchasePrice no puede ser un valor negativo ni cero");
+        }
+        
+        if (product.getQuantity() <= 0) {
+            return buildResponseError(HttpStatus.BAD_REQUEST,"Quantity no puede ser un valor negativo ni cero");
+        }
+
+        if (productService.existsProductById(product.getId())) {
+            return buildResponseError(HttpStatus.NOT_FOUND,"producto no encontrado");
+        }
+        
+        return ResponseEntity.ok(productService.updateProduct(product.getId(),product));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteProduct(@PathVariable String id){
+        
+        Long parsedId = validateInteger(id, "id");
+
+        if(parsedId == -1){
             return error;
         }
 
-        for (Product product : productList) {
-            if (parsedId == product.getId()) {
-                return ResponseEntity.ok(product);
+        if (productService.existsProductById(parsedId)) {
+            return buildResponseError(HttpStatus.NOT_FOUND,"producto no encontrado");
+        }
+
+        List<IncomeDetail> incomeDetails = incomeDetailService.getIncomeDetails();
+        List<SellDetail> sellDetails = sellDetailService.getSellDetails();
+
+        for (SellDetail sellDetail : sellDetails) {
+            if (sellDetail.getIdProduct() == parsedId) {
+                sellDetailService.deleteSellDetail(sellDetail.getId());
+            }
+        }
+        for (IncomeDetail incomeDetail : incomeDetails) {
+            if (incomeDetail.getIdProduct() == parsedId) {
+                incomeDetailService.deleteIncomeDetail(incomeDetail.getId());
             }
         }
 
-        return buildResponseError(HttpStatus.NOT_FOUND,"producto no encontrado");
+        productService.deleteProduct(parsedId);
+
+        return ResponseEntity.ok().body("Product " + parsedId + " borrado.");
     }
 
     @GetMapping("/{id}/sell/{price}")
     public ResponseEntity<?> addSellProduct(@PathVariable String id,@PathVariable String price) {
         
-        int parsedId = validateInteger(id,"id");
-        int parsedPrice = validateInteger(price,"price");
+        Long parsedId = validateInteger(id,"id");
+        int parsedPrice = Long.valueOf(validateInteger(price,"price")).intValue();
 
         if( parsedId == -1 || parsedPrice== -1 ){
             return error;
@@ -117,8 +181,8 @@ public class ProductController {
     @GetMapping("/{id}/sell/{price}/{date}")
     public ResponseEntity<?> addSellDetailProduct(@PathVariable String id,@PathVariable String price,@PathVariable String date) {
         
-        int parsedId = validateInteger(id,"id");
-        int parsedPrice = validateInteger(price,"price");
+        Long parsedId = validateInteger(id,"id");
+        int parsedPrice = Long.valueOf(validateInteger(price,"price")).intValue();
         LocalDateTime parsedDate = validateDate(date);
 
         if( parsedId == -1 || parsedPrice== -1 || parsedDate == null ){
@@ -138,7 +202,7 @@ public class ProductController {
     @GetMapping("/{id}/profit/{year}-{month}-{day}")
     public ResponseEntity<?> calcProfitByDate(@PathVariable String id,@PathVariable String year,@PathVariable String month,@PathVariable String day) {
 
-        int parsedId = validateInteger(id,"id");
+        Long parsedId = validateInteger(id,"id");
         int parsedYear = validateYear(year);
         int parsedMonth = validateMonth(month);
         int parsedDay = validateDay(day);
@@ -193,19 +257,19 @@ public class ProductController {
         return  ResponseEntity.ok(localIncomeCalc);
     }
 
-    private int validateInteger(String intAsStr,String paramName){
+    private Long validateInteger(String intAsStr,String paramName){
         try {
-            int parsedInt = Integer.parseInt(intAsStr);
+            Long parsedInt = Long.parseLong(intAsStr);
 
             if(parsedInt < 0){
-                parsedInt = -1;
+                parsedInt = -1L;
                 error = buildResponseError(HttpStatus.BAD_REQUEST,paramName+" no puede ser negativo");
             }
 
             return parsedInt;
         } catch (Exception e) {
             error = buildResponseError(HttpStatus.BAD_REQUEST,paramName+" no valido");
-            return -1;
+            return -1L;
         }
     }
 
@@ -221,7 +285,7 @@ public class ProductController {
 
     private int validateYear(String yearStr){
         if(yearStr.length() == 4){
-            return validateInteger(yearStr,"año");
+            return Long.valueOf(validateInteger(yearStr,"año")).intValue();
         }else{
             error = buildResponseError(HttpStatus.BAD_REQUEST,"valor de año no valido");
         }
@@ -236,7 +300,7 @@ public class ProductController {
         }
 
         if( monthLength == 1 || monthLength == 2){
-            int monthInt = validateInteger(monthStr,"mes");
+            int monthInt = Long.valueOf(validateInteger(monthStr,"mes")).intValue();
             if(monthInt < 1 || monthInt > 12){
                 monthInt = -1;
                 error = buildResponseError(HttpStatus.BAD_REQUEST,"numero de mes no valido");
@@ -257,7 +321,7 @@ public class ProductController {
         }
 
         if(dayLength == 1 || dayLength == 2){
-            int dayInt = validateInteger(dayStr,"dia");
+            int dayInt = Long.valueOf(validateInteger(dayStr,"dia")).intValue();
             if(dayInt < 1 || dayInt > 31){
                 dayInt = -1;
                 error = buildResponseError(HttpStatus.BAD_REQUEST,"numero de dia no valido");

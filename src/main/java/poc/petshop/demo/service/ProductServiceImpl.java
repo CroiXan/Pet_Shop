@@ -42,4 +42,9 @@ public class ProductServiceImpl implements ProductService{
         return null;
     }
 
+    @Override
+    public boolean existsProductById(Long id) {
+        return productRepository.existsById(id);
+    }
+
 }

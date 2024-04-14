@@ -42,4 +42,9 @@ public class IncomeDetailServiceImpl implements IncomeDetailService{
         return null;
     }
 
+    @Override
+    public boolean existsIncomeDetailById(Long id) {
+        return incomeDetailRepository.existsById(id);
+    }
+
 }

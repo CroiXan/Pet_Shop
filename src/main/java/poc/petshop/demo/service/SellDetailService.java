@@ -11,4 +11,5 @@ public interface SellDetailService {
     SellDetail createSellDetail(SellDetail sellDetail);
     SellDetail updateSellDetail(Long id, SellDetail sellDetail);
     void deleteSellDetail(Long id);
+    boolean existsSellDetailById(Long id);
 }

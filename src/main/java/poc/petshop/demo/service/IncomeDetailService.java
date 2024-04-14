@@ -11,4 +11,5 @@ public interface IncomeDetailService {
     IncomeDetail createIncomeDetail(IncomeDetail incomeDetail);
     IncomeDetail updateIncomeDetail(Long id, IncomeDetail incomeDetail);
     void deleteIncomeDetail(Long id);
+    boolean existsIncomeDetailById(Long id);
 }
