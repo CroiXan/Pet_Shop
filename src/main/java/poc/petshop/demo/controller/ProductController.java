@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,15 +35,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 public class ProductController {
 
     @Autowired
+    private IncomeDetailService incomeDetailService;
+
+    @Autowired
     private ProductService productService;
 
     @Autowired
     private SellDetailService sellDetailService;
 
-    @Autowired
-    private IncomeDetailService incomeDetailService;
-
-    private List<Product> productList = new ArrayList<>();
     private ResponseEntity<ErrorMessage> error = ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage(HttpStatus.NOT_FOUND.value(),"producto no encontrado"));
     
     @GetMapping
@@ -154,47 +152,6 @@ public class ProductController {
         return ResponseEntity.ok().body("Product " + parsedId + " borrado.");
     }
 
-    @GetMapping("/{id}/sell/{price}")
-    public ResponseEntity<?> addSellProduct(@PathVariable String id,@PathVariable String price) {
-        
-        Long parsedId = validateInteger(id,"id");
-        int parsedPrice = Long.valueOf(validateInteger(price,"price")).intValue();
-
-        if( parsedId == -1 || parsedPrice== -1 ){
-            return error;
-        }
-
-        for (Product product : productList) {
-            if (parsedId == product.getId()) {
-                product.addSellDetail(new SellDetail(parsedPrice, LocalDateTime.now()));
-                return ResponseEntity.ok(product);
-            }
-        }
-
-        return buildResponseError(HttpStatus.NOT_FOUND,"producto no encontrado");
-    }
-
-    @GetMapping("/{id}/sell/{price}/{date}")
-    public ResponseEntity<?> addSellDetailProduct(@PathVariable String id,@PathVariable String price,@PathVariable String date) {
-        
-        Long parsedId = validateInteger(id,"id");
-        int parsedPrice = Long.valueOf(validateInteger(price,"price")).intValue();
-        LocalDateTime parsedDate = validateDate(date);
-
-        if( parsedId == -1 || parsedPrice== -1 || parsedDate == null ){
-            return error;
-        }
-
-        for (Product product : productList) {
-            if (parsedId == product.getId()) {
-                product.addSellDetail(new SellDetail(parsedPrice, parsedDate));
-                return ResponseEntity.ok(product);
-            }
-        }
-
-        return buildResponseError(HttpStatus.NOT_FOUND,"producto no encontrado");
-    }
-
     @GetMapping("/{id}/profit/{year}-{month}-{day}")
     public ResponseEntity<?> calcProfitByDate(@PathVariable String id,@PathVariable String year,@PathVariable String month,@PathVariable String day) {
 
@@ -207,14 +164,15 @@ public class ProductController {
             return error;
         }
 
-        for (Product product : productList) {
-            if (parsedId == product.getId()) {
-                IncomeDetail incomeDetail = calcEarning(product, parsedYear, parsedMonth, parsedDay);
-                return  ResponseEntity.ok(incomeDetail);
-            }
+        Optional<Product> product = productService.getProductById(parsedId);
+
+        if (product.isEmpty()) {
+            return buildResponseError(HttpStatus.NOT_FOUND,"producto no encontrado");
         }
 
-        return buildResponseError(HttpStatus.NOT_FOUND,"producto no encontrado");
+        IncomeDetail incomeDetail = calcEarning(product.get(), parsedYear, parsedMonth, parsedDay);
+        return  ResponseEntity.ok(incomeDetail);
+        
     }
 
     @GetMapping("/profit/{year}-{month}-{day}")
@@ -224,8 +182,6 @@ public class ProductController {
         int parsedMonth = validateMonth(month);
         int parsedDay = validateDay(day);
         String period = year + "";
-        double allIncome = 0.0;
-        double allEarning = 0.0;
         IncomeDetail localIncomeCalc = new IncomeDetail(LocalDateTime.now(), "", 0, 0);
 
         if (parsedYear == -1 || parsedMonth == -1 || parsedDay == -1) {
@@ -239,16 +195,13 @@ public class ProductController {
             }
         }
 
-        localIncomeCalc.setPeriod(period);
+        localIncomeCalc = calcEarning(null, parsedYear, parsedMonth, parsedDay);
 
-        for (Product product : productList) {
-            IncomeDetail incomeDetail = calcEarning(product, parsedYear, parsedMonth, parsedDay);
-            allIncome += incomeDetail.getIncome();
-            allEarning += incomeDetail.getEarning();
+        if (localIncomeCalc == null) {
+            return error;
         }
 
-        localIncomeCalc.setIncome(allIncome);
-        localIncomeCalc.setEarning(allEarning);
+        localIncomeCalc.setPeriod(period);
 
         return  ResponseEntity.ok(localIncomeCalc);
     }
@@ -344,10 +297,15 @@ public class ProductController {
 
                 LocalDate searchDate = LocalDate.of(year, month, day);
                 period += "-" + day;
-                for (SellDetail sellDetail : product.getsellDetailsList()) {
-                    if (sellDetail.getSellDateTime().toLocalDate().equals(searchDate)) {
-                        income += sellDetail.getSellPrice();
-                        earning += sellDetail.getSellPrice() * 0.81 - product.getPurchasePrice();
+
+                List<SellDetail> sellDetails = sellDetailService.getSellDetails();
+
+                for (SellDetail sellDetail : sellDetails) {
+                    if (sellDetail.getIdProduct() == product.getId() || product == null) {
+                        if (sellDetail.getSellDateTime().toLocalDate().equals(searchDate)) {
+                            income += sellDetail.getSellPrice();
+                            earning += sellDetail.getSellPrice() * 0.81 - product.getPurchasePrice();
+                        }
                     }
                 }
 
@@ -356,18 +314,23 @@ public class ProductController {
                 return null;
             }
         }else{
-            for (SellDetail sellDetail : product.getsellDetailsList()) {
-                
-                if ( sellDetail.getSellDateTime().getYear() == year && ( month == 0 || sellDetail.getSellDateTime().getMonthValue() == month ) ) {
-                    income += sellDetail.getSellPrice();
-                    earning += sellDetail.getSellPrice() * 0.81 - product.getPurchasePrice();
+
+            List<SellDetail> sellDetails = sellDetailService.getSellDetails();
+
+            for (SellDetail sellDetail : sellDetails) {
+                if (sellDetail.getIdProduct() == product.getId() || product == null) {
+                    if ( sellDetail.getSellDateTime().getYear() == year && ( month == 0 || sellDetail.getSellDateTime().getMonthValue() == month ) ) {
+                        income += sellDetail.getSellPrice();
+                        earning += sellDetail.getSellPrice() * 0.81 - product.getPurchasePrice();
+                    }
                 }
             }
+
         }
 
         DecimalFormat format = new DecimalFormat("#.##");
         
-        return product.addIncomeDetail(new IncomeDetail(LocalDateTime.now(), period, income,Double.parseDouble(format.format(earning))));
+        return (new IncomeDetail(LocalDateTime.now(), period, income,Double.parseDouble(format.format(earning))));
         
     }
     

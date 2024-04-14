@@ -4,10 +4,12 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import poc.petshop.demo.model.IncomeDetail;
 import poc.petshop.demo.repository.IncomeDetailRepository;
 
+@Service
 public class IncomeDetailServiceImpl implements IncomeDetailService{
 
     @Autowired

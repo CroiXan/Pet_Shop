@@ -50,6 +50,9 @@ public class IncomeDetail {
         this.earning = earning;
     }
 
+    public IncomeDetail() {
+    }
+
     public Long getId() {
         return id;
     }

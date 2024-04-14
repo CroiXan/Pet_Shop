@@ -4,10 +4,12 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import poc.petshop.demo.model.Product;
 import poc.petshop.demo.repository.ProductRepository;
 
+@Service
 public class ProductServiceImpl implements ProductService{
 
     @Autowired

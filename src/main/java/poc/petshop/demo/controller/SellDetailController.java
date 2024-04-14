@@ -4,7 +4,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import poc.petshop.demo.model.ErrorMessage;
 import poc.petshop.demo.model.SellDetail;
-import poc.petshop.demo.service.IncomeDetailService;
 import poc.petshop.demo.service.ProductService;
 import poc.petshop.demo.service.SellDetailService;
 
@@ -21,11 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
-
-
-
 
 @RestController
 @RequestMapping("/review")
@@ -37,11 +32,6 @@ public class SellDetailController {
     @Autowired
     private SellDetailService sellDetailService;
 
-    @Autowired
-    private IncomeDetailService incomeDetailService;
-
-    private ResponseEntity<ErrorMessage> error = ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage(HttpStatus.NOT_FOUND.value(),"producto no encontrado"));
-    
     @GetMapping
     public ResponseEntity<List<SellDetail>> getAllSellDetail() {
         return ResponseEntity.ok(sellDetailService.getSellDetails());
@@ -129,12 +119,10 @@ public class SellDetailController {
 
             if(parsedInt < 0){
                 parsedInt = -1L;
-                error = buildResponseError(HttpStatus.BAD_REQUEST,paramName+" no puede ser negativo");
             }
 
             return parsedInt;
         } catch (Exception e) {
-            error = buildResponseError(HttpStatus.BAD_REQUEST,paramName+" no valido");
             return -1L;
         }
     }

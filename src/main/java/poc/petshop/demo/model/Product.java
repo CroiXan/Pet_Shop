@@ -1,8 +1,5 @@
 package poc.petshop.demo.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -31,15 +28,15 @@ public class Product {
     @Column(name="quantity")
     private int quantity;
 
-    private List<SellDetail> sellDetailsList = new ArrayList<>();
-    private List<IncomeDetail> incomeDetailList = new ArrayList<>();
-
     public Product(Long id, String name, String description, int purchasePrice, int quantity) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.purchasePrice = purchasePrice;
         this.quantity = quantity;
+    }
+
+    public Product() {
     }
 
     public Long getId() {
@@ -80,54 +77,6 @@ public class Product {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
-    }
-
-    public List<SellDetail> getsellDetailsList() {
-        return sellDetailsList;
-    }
-
-    public void setsellDetailsList(List<SellDetail> sellDetailsList) {
-        this.sellDetailsList = sellDetailsList;
-    }
-
-    public void addSellDetail(SellDetail sellDetail){
-        
-        int size = this.sellDetailsList.size();
-
-        if (size < this.quantity) {
-            Long id = 0L;
-
-            if(size > 0){
-                id = sellDetailsList.get(size-1).getId() + 1;
-            }
-            
-            sellDetail.setId(id);
-    
-            this.sellDetailsList.add(sellDetail);
-        }
-        
-    }
-
-    public List<IncomeDetail> getIncomeDetailList() {
-        return incomeDetailList;
-    }
-
-    public IncomeDetail addIncomeDetail(IncomeDetail incomeDetail){
-        incomeDetail.setId(this.incomeDetailList.size()+1L);
-        this.incomeDetailList.add(incomeDetail);
-        return incomeDetail;
-    }
-
-    public List<SellDetail> getSellDetailsList() {
-        return sellDetailsList;
-    }
-
-    public void setSellDetailsList(List<SellDetail> sellDetailsList) {
-        this.sellDetailsList = sellDetailsList;
-    }
-
-    public void setIncomeDetailList(List<IncomeDetail> incomeDetailList) {
-        this.incomeDetailList = incomeDetailList;
     }
 
 }

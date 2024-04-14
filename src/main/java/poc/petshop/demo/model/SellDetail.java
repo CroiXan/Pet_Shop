@@ -28,6 +28,9 @@ public class SellDetail {
     @Column(name="sellDateTime")
     private LocalDateTime sellDateTime;
 
+    public SellDetail() {
+    }
+
     public SellDetail(int sellPrice, LocalDateTime sellDateTime) {
         this.sellPrice = sellPrice;
         this.sellDateTime = sellDateTime;
