@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @RestController
-@RequestMapping("/review")
+@RequestMapping("/sellDetail")
 public class SellDetailController {
 
     @Autowired
