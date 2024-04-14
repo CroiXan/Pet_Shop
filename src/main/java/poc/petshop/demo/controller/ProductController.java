@@ -1,4 +1,4 @@
-package poc.petshop.demo;
+package poc.petshop.demo.controller;
 
 import java.text.DecimalFormat;
 import java.time.LocalDate;
@@ -10,22 +10,35 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.web.bind.annotation.RestController;
+
+import poc.petshop.demo.model.ErrorMessage;
+import poc.petshop.demo.model.IncomeDetail;
+import poc.petshop.demo.model.Product;
+import poc.petshop.demo.model.SellDetail;
+import poc.petshop.demo.service.ProductService;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 
 
 @RestController
+@RequestMapping("/product")
 public class ProductController {
+
+    @Autowired
+    private ProductService productService;
 
     private List<Product> productList = new ArrayList<>();
     private ResponseEntity<ErrorMessage> error = ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage(HttpStatus.NOT_FOUND.value(),"producto no encontrado"));
 
     public ProductController() {
 
-        productList.add(new Product(1, "plato verde", "plato plastico color verde", 2000, 100));
+        productList.add(new Product(1L, "plato verde", "plato plastico color verde", 2000, 100));
         productList.get(0).addSellDetail(new SellDetail(3000, LocalDateTime.of(2023, Month.DECEMBER, 15, 15, 35, 0)));
         productList.get(0).addSellDetail(new SellDetail(3000, LocalDateTime.of(2023, Month.DECEMBER, 15, 16, 20, 0)));
         productList.get(0).addSellDetail(new SellDetail(4000, LocalDateTime.of(2024, Month.FEBRUARY, 12, 15,40, 0)));
@@ -34,21 +47,21 @@ public class ProductController {
         productList.get(0).addSellDetail(new SellDetail(3200, LocalDateTime.of(2024, Month.MARCH, 20, 14, 13, 0)));
         productList.get(0).addSellDetail(new SellDetail(3200, LocalDateTime.of(2024, Month.MARCH, 20, 16,48, 0)));
         
-        productList.add(new Product(2, "correa con collar gato", "correa confortable para gato incluye correa", 5000, 30));
+        productList.add(new Product(2L, "correa con collar gato", "correa confortable para gato incluye correa", 5000, 30));
         productList.get(1).addSellDetail(new SellDetail(10000, LocalDateTime.of(2023, Month.NOVEMBER, 15, 0, 0, 0)));
         productList.get(1).addSellDetail(new SellDetail(12000, LocalDateTime.of(2023, Month.DECEMBER, 20, 0, 0, 0)));
         productList.get(1).addSellDetail(new SellDetail(11500, LocalDateTime.of(2024, Month.JANUARY, 6, 0, 0, 0)));
         productList.get(1).addSellDetail(new SellDetail(10500, LocalDateTime.of(2024, Month.JANUARY, 18, 0, 0, 0)));
         productList.get(1).addSellDetail(new SellDetail(9000, LocalDateTime.of(2024, Month.FEBRUARY, 5, 0, 0, 0)));
 
-        productList.add(new Product(3, "canil para perro mediano", "canil para perro, soporta 30 kg", 40000, 12));
+        productList.add(new Product(3L, "canil para perro mediano", "canil para perro, soporta 30 kg", 40000, 12));
         productList.get(2).addSellDetail(new SellDetail(70000, LocalDateTime.of(2023, Month.DECEMBER, 17, 0, 0, 0)));
         productList.get(2).addSellDetail(new SellDetail(85000, LocalDateTime.of(2024, Month.JANUARY, 4, 0, 0, 0)));
         productList.get(2).addSellDetail(new SellDetail(85000, LocalDateTime.of(2024, Month.JANUARY, 26, 0, 0, 0)));
         productList.get(2).addSellDetail(new SellDetail(78000, LocalDateTime.of(2024, Month.FEBRUARY, 24, 0, 0, 0)));
         productList.get(2).addSellDetail(new SellDetail(80000, LocalDateTime.of(2024, Month.MARCH, 10, 0, 0, 0)));
 
-        productList.add(new Product(4, "casa de perro", "casa plastica de perro raza pequeña", 30000, 8));
+        productList.add(new Product(4L, "casa de perro", "casa plastica de perro raza pequeña", 30000, 8));
         productList.get(3).addSellDetail(new SellDetail(75000, LocalDateTime.of(2023, Month.NOVEMBER, 23, 0, 0, 0)));
         productList.get(3).addSellDetail(new SellDetail(70500, LocalDateTime.of(2023, Month.NOVEMBER, 12, 0, 0, 0)));
         productList.get(3).addSellDetail(new SellDetail(55000, LocalDateTime.of(2023, Month.DECEMBER, 9, 0, 0, 0)));
@@ -57,13 +70,13 @@ public class ProductController {
 
     }
     
-    @GetMapping("/product")
-    public List<Product> getProducts(){
-        return productList;
+    @GetMapping
+    public ResponseEntity<List<Product>> getProducts(){
+        return ResponseEntity.ok(productService.getAllProducts());
     }
 
     
-    @GetMapping("/product/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<?> getProductById(@PathVariable String id) {
 
         int parsedId = validateInteger(id,"id");
@@ -81,7 +94,7 @@ public class ProductController {
         return buildResponseError(HttpStatus.NOT_FOUND,"producto no encontrado");
     }
 
-    @GetMapping("/product/{id}/sell/{price}")
+    @GetMapping("/{id}/sell/{price}")
     public ResponseEntity<?> addSellProduct(@PathVariable String id,@PathVariable String price) {
         
         int parsedId = validateInteger(id,"id");
@@ -101,7 +114,7 @@ public class ProductController {
         return buildResponseError(HttpStatus.NOT_FOUND,"producto no encontrado");
     }
 
-    @GetMapping("/product/{id}/sell/{price}/{date}")
+    @GetMapping("/{id}/sell/{price}/{date}")
     public ResponseEntity<?> addSellDetailProduct(@PathVariable String id,@PathVariable String price,@PathVariable String date) {
         
         int parsedId = validateInteger(id,"id");
@@ -122,7 +135,7 @@ public class ProductController {
         return buildResponseError(HttpStatus.NOT_FOUND,"producto no encontrado");
     }
 
-    @GetMapping("/product/{id}/profit/{year}-{month}-{day}")
+    @GetMapping("/{id}/profit/{year}-{month}-{day}")
     public ResponseEntity<?> calcProfitByDate(@PathVariable String id,@PathVariable String year,@PathVariable String month,@PathVariable String day) {
 
         int parsedId = validateInteger(id,"id");
@@ -144,7 +157,7 @@ public class ProductController {
         return buildResponseError(HttpStatus.NOT_FOUND,"producto no encontrado");
     }
 
-    @GetMapping("/product/profit/{year}-{month}-{day}")
+    @GetMapping("/profit/{year}-{month}-{day}")
     public ResponseEntity<?> calcAllProfitByDate(@PathVariable String year,@PathVariable String month,@PathVariable String day) {
 
         int parsedYear = validateYear(year);

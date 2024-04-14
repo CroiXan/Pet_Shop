@@ -1,4 +1,4 @@
-package poc.petshop.demo;
+package poc.petshop.demo.model;
 
 public class ErrorMessage {
     private int status;
