@@ -22,7 +22,7 @@ public class Product {
     @Column(name="descripcion")
     private String description;
 
-    @Column(name="purchasePrice")
+    @Column(name="purchase_price")
     private int purchasePrice;
 
     @Column(name="quantity")

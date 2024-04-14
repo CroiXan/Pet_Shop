@@ -9,7 +9,7 @@ CREATE TABLE producto (
                           START WITH 1,
     nombre          VARCHAR2(100) NOT NULL,
     descripcion     VARCHAR2(200) NOT NULL,
-    purchasePrice   NUMBER(8) NOT NULL,
+    purchase_price   NUMBER(8) NOT NULL,
     quantity        NUMBER(4) NOT NULL
 );
 
@@ -21,8 +21,8 @@ CREATE TABLE venta (
                           INCREMENT BY 1 
                           START WITH 1,
     id_producto     NUMBER(8) NOT NULL,
-    sellPrice       NUMBER(8) NOT NULL,
-    sellDateTime    DATE NOT NULL
+    sell_price       NUMBER(8) NOT NULL,
+    sell_date    DATE NOT NULL
 );
 
 ALTER TABLE venta ADD CONSTRAINT venta_pk PRIMARY KEY ( id_venta );
@@ -33,9 +33,9 @@ CREATE TABLE venta_detalle (
                           INCREMENT BY 1 
                           START WITH 1,
     id_producto     NUMBER(8) NOT NULL,
-    sellPrice       NUMBER(8) NOT NULL,
+    sell_price      NUMBER(8) NOT NULL,
     periodo         VARCHAR2(50) NOT NULL,
-    calcDateTime    DATE NOT NULL,
+    calc_date       DATE NOT NULL,
     income          NUMBER(8,3) NOT NULL,
     earning         NUMBER(8,3) NOT NULL
 );

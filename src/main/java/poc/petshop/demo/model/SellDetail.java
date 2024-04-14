@@ -22,10 +22,10 @@ public class SellDetail {
     @Column(name="id_producto")
     private Long idProduct;
 
-    @Column(name="sellPrice")
+    @Column(name="sell_price")
     private int sellPrice;
 
-    @Column(name="sellDateTime")
+    @Column(name="sell_date")
     private LocalDateTime sellDateTime;
 
     public SellDetail() {

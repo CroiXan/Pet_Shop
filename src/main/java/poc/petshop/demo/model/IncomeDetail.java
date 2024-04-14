@@ -21,7 +21,7 @@ public class IncomeDetail {
     @Column(name="id_producto")
     private Long idProduct;
 
-    @Column(name="calcDateTime")
+    @Column(name="calc_date")
     private LocalDateTime calcDateTime;
 
     @Column(name="periodo")
@@ -32,6 +32,9 @@ public class IncomeDetail {
     
     @Column(name="earning")
     private double earning;
+
+    @Column(name="sell_price")
+    private double sellPrice;
     
     public IncomeDetail(LocalDateTime calcDateTime, String period, double income, double earning) {
         this.calcDateTime = calcDateTime;
@@ -99,6 +102,14 @@ public class IncomeDetail {
 
     public void setIdProduct(Long idProduct) {
         this.idProduct = idProduct;
+    }
+
+    public double getSellPrice() {
+        return sellPrice;
+    }
+
+    public void setSellPrice(double sellPrice) {
+        this.sellPrice = sellPrice;
     }
     
 }
