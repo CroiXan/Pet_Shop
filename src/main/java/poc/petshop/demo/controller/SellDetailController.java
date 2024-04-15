@@ -54,8 +54,14 @@ public class SellDetailController {
     @PostMapping
     public ResponseEntity<?> addSellDetail(@RequestBody SellDetail sellDetail) {
         
-        if(sellDetail.getId() < 0L){
+        if(sellDetail.getId() != null && sellDetail.getId() < 0L){
             return buildResponseError(HttpStatus.BAD_REQUEST,"id no puede ser un valor negativo");
+        }
+
+        sellDetail.setId(null);
+
+        if(sellDetail.getIdProduct() == null){
+            return buildResponseError(HttpStatus.BAD_REQUEST,"id de producto no puede estar vacio");
         }
 
         if(sellDetail.getIdProduct() < 0L){
@@ -66,7 +72,7 @@ public class SellDetailController {
             return buildResponseError(HttpStatus.BAD_REQUEST,"SellPrice no puede ser un valor negativo.");
         }
 
-        if (productService.existsProductById(sellDetail.getIdProduct())) {
+        if (!productService.existsProductById(sellDetail.getIdProduct())) {
             return buildResponseError(HttpStatus.NOT_FOUND,"producto no encontrado");
         }
 
@@ -76,8 +82,16 @@ public class SellDetailController {
     @PutMapping
     public ResponseEntity<?> updateSellDetail(@RequestBody SellDetail sellDetail) {
         
+        if (sellDetail.getId() == null) {
+            return buildResponseError(HttpStatus.BAD_REQUEST,"id no puede estar vacio");
+        }
+
         if(sellDetail.getId() < 0L){
             return buildResponseError(HttpStatus.BAD_REQUEST,"id no puede ser un valor negativo");
+        }
+
+        if(sellDetail.getIdProduct() == null){
+            return buildResponseError(HttpStatus.BAD_REQUEST,"id de producto no puede estar vacio");
         }
 
         if(sellDetail.getIdProduct() < 0L){
@@ -88,23 +102,23 @@ public class SellDetailController {
             return buildResponseError(HttpStatus.BAD_REQUEST,"SellPrice no puede ser un valor negativo.");
         }
 
-        if (productService.existsProductById(sellDetail.getIdProduct())) {
+        if (!productService.existsProductById(sellDetail.getIdProduct())) {
             return buildResponseError(HttpStatus.NOT_FOUND,"producto no encontrado");
         }
 
-        if (sellDetailService.existsSellDetailById(sellDetail.getId())) {
+        if (!sellDetailService.existsSellDetailById(sellDetail.getId())) {
             return buildResponseError(HttpStatus.NOT_FOUND,"venta no encontrada");
         }
 
         return ResponseEntity.ok(sellDetailService.createSellDetail(sellDetail));
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteSellDetail(@PathVariable String id){
         
         Long parsedId = validateInteger(id, "id");
 
-        if (sellDetailService.existsSellDetailById(parsedId)) {
+        if (!sellDetailService.existsSellDetailById(parsedId)) {
             return buildResponseError(HttpStatus.NOT_FOUND,"venta no encontrada");
         }
 

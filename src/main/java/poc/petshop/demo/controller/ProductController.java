@@ -3,9 +3,6 @@ package poc.petshop.demo.controller;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.Month;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -66,10 +63,12 @@ public class ProductController {
 
     @PostMapping
     public ResponseEntity<?> postAddProduct(@RequestBody Product product) {
-        
-        if(product.getId() < 0L){
+
+        if(product.getId() != null && product.getId() < 0L){
             return buildResponseError(HttpStatus.BAD_REQUEST,"id no puede ser un valor negativo");
         }
+
+        product.setId(null);
 
         if (product.getName().length() == 0) {
             return buildResponseError(HttpStatus.BAD_REQUEST,"name no puede estar vacio");
@@ -93,6 +92,10 @@ public class ProductController {
     @PutMapping
     public ResponseEntity<?> updateProduct(@RequestBody Product product) {
         
+        if (product.getId() == null) {
+            return buildResponseError(HttpStatus.BAD_REQUEST,"id no puede estar vacio");
+        }
+
         if(product.getId() < 0L){
             return buildResponseError(HttpStatus.BAD_REQUEST,"id no puede ser un valor negativo");
         }
@@ -113,7 +116,7 @@ public class ProductController {
             return buildResponseError(HttpStatus.BAD_REQUEST,"Quantity no puede ser un valor negativo ni cero");
         }
 
-        if (productService.existsProductById(product.getId())) {
+        if (!productService.existsProductById(product.getId())) {
             return buildResponseError(HttpStatus.NOT_FOUND,"producto no encontrado");
         }
         
@@ -129,7 +132,7 @@ public class ProductController {
             return error;
         }
 
-        if (productService.existsProductById(parsedId)) {
+        if (!productService.existsProductById(parsedId)) {
             return buildResponseError(HttpStatus.NOT_FOUND,"producto no encontrado");
         }
 
@@ -220,16 +223,6 @@ public class ProductController {
             error = buildResponseError(HttpStatus.BAD_REQUEST,paramName+" no valido");
             return -1L;
         }
-    }
-
-    private LocalDateTime validateDate(String dateStr){
-        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE;
-        try {
-            return LocalDateTime.of(LocalDate.parse(dateStr,formatter), LocalTime.of(0, 0));
-        } catch (Exception e) {
-            error = buildResponseError(HttpStatus.BAD_REQUEST,"formato de fecha no valido, ingresar YYYY-MM-DD");
-        }
-        return null;
     }
 
     private int validateYear(String yearStr){
@@ -330,7 +323,7 @@ public class ProductController {
 
         DecimalFormat format = new DecimalFormat("#.##");
         
-        return (new IncomeDetail(LocalDateTime.now(), period, income,Double.parseDouble(format.format(earning))));
+        return (new IncomeDetail(1L,product.getId(),LocalDateTime.now(), period, income,Double.parseDouble(format.format(earning))));
         
     }
     
