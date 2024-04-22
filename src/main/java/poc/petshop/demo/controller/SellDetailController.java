@@ -2,7 +2,6 @@ package poc.petshop.demo.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 
-import poc.petshop.demo.model.ErrorMessage;
 import poc.petshop.demo.model.SellDetail;
 import poc.petshop.demo.service.ProductService;
 import poc.petshop.demo.service.SellDetailService;
@@ -13,9 +12,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -33,84 +35,108 @@ public class SellDetailController {
     private SellDetailService sellDetailService;
 
     @GetMapping
-    public ResponseEntity<List<SellDetail>> getAllSellDetail() {
-        return ResponseEntity.ok(sellDetailService.getSellDetails());
+    public CollectionModel<EntityModel<SellDetail>> getAllSellDetail() {
+        List<SellDetail> sellDetails = sellDetailService.getSellDetails();
+
+        List<EntityModel<SellDetail>> sellDetailResource = sellDetails.stream()
+            .map(sellDetail -> EntityModel.of(sellDetail,
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getSellDetailById(sellDetail.getId())).withSelfRel()
+            ))
+            .collect(Collectors.toList());
+        
+        WebMvcLinkBuilder linkTo = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getAllSellDetail());
+
+        CollectionModel<EntityModel<SellDetail>> resources = CollectionModel.of(sellDetailResource, linkTo.withRel("sellDetail"));
+
+        return resources;
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<?> getAllSellDetailById(@PathVariable String id) {
+    public EntityModel<SellDetail> getSellDetailById(@PathVariable Long id) {
 
-        Long parsedId = validateInteger(id,"id");
-        Optional<SellDetail> sellDetail = sellDetailService.getSellDetailById(parsedId);
+        Optional<SellDetail> pelicula = sellDetailService.getSellDetailById(id);
 
-        if (sellDetail.isEmpty()) {
-            return buildResponseError(HttpStatus.NOT_FOUND,"producto no encontrado");
+        if (pelicula.isPresent()) {
+            return EntityModel.of(pelicula.get(),
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getSellDetailById(id)).withSelfRel(),
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getAllSellDetail()).withRel("all-sellDetails")
+            );
+        }else{
+            throw new SellDetailNotFoundException("Detalle de venta no encontrado con id: " + id);
         }
-
-        return ResponseEntity.ok(sellDetail);
 
     }
 
     @PostMapping
-    public ResponseEntity<?> addSellDetail(@RequestBody SellDetail sellDetail) {
+    public EntityModel<SellDetail> addSellDetail(@RequestBody SellDetail sellDetail) {
         
         if(sellDetail.getId() != null && sellDetail.getId() < 0L){
-            return buildResponseError(HttpStatus.BAD_REQUEST,"id no puede ser un valor negativo");
+            throw new SellDetailBadRequestException("id de venta no puede ser un valor negativo");
         }
 
         sellDetail.setId(null);
 
         if(sellDetail.getIdProduct() == null){
-            return buildResponseError(HttpStatus.BAD_REQUEST,"id de producto no puede estar vacio");
+            throw new SellDetailBadRequestException("id de producto no puede estar vacio");
         }
 
         if(sellDetail.getIdProduct() < 0L){
-            return buildResponseError(HttpStatus.BAD_REQUEST,"id de producto no puede ser un valor negativo");
+            throw new SellDetailBadRequestException("id de producto no puede ser un valor negativo");
         }
 
         if (sellDetail.getSellPrice() < 0) {
-            return buildResponseError(HttpStatus.BAD_REQUEST,"SellPrice no puede ser un valor negativo.");
+            throw new SellDetailBadRequestException("SellPrice no puede ser un valor negativo.");
         }
 
         if (!productService.existsProductById(sellDetail.getIdProduct())) {
-            return buildResponseError(HttpStatus.NOT_FOUND,"producto no encontrado");
+            throw new ProductNotFoundException("producto no encontrado");
         }
 
-        return ResponseEntity.ok(sellDetailService.createSellDetail(sellDetail));
+        SellDetail createdSellDetail = sellDetailService.createSellDetail(sellDetail);
+        return EntityModel.of(createdSellDetail,
+            WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getSellDetailById(createdSellDetail.getId())).withSelfRel(),
+            WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getAllSellDetail()).withRel("all-sellDetails")
+        );
+
     }
     
-    @PutMapping
-    public ResponseEntity<?> updateSellDetail(@RequestBody SellDetail sellDetail) {
+    @PutMapping("/{id}")
+    public EntityModel<SellDetail> updateSellDetail(@PathVariable Long id, @RequestBody SellDetail sellDetail) {
         
         if (sellDetail.getId() == null) {
-            return buildResponseError(HttpStatus.BAD_REQUEST,"id no puede estar vacio");
+            throw new SellDetailBadRequestException("id de venta no puede estar vacio");
         }
 
         if(sellDetail.getId() < 0L){
-            return buildResponseError(HttpStatus.BAD_REQUEST,"id no puede ser un valor negativo");
+            throw new SellDetailBadRequestException("id no puede ser un valor negativo");
         }
 
         if(sellDetail.getIdProduct() == null){
-            return buildResponseError(HttpStatus.BAD_REQUEST,"id de producto no puede estar vacio");
+            throw new SellDetailBadRequestException("id de producto no puede estar vacio");
         }
 
         if(sellDetail.getIdProduct() < 0L){
-            return buildResponseError(HttpStatus.BAD_REQUEST,"id de producto no puede ser un valor negativo");
+            throw new SellDetailBadRequestException("id de producto no puede ser un valor negativo");
         }
 
         if (sellDetail.getSellPrice() < 0) {
-            return buildResponseError(HttpStatus.BAD_REQUEST,"SellPrice no puede ser un valor negativo.");
+            throw new SellDetailBadRequestException("SellPrice no puede ser un valor negativo.");
         }
 
         if (!productService.existsProductById(sellDetail.getIdProduct())) {
-            return buildResponseError(HttpStatus.NOT_FOUND,"producto no encontrado");
+            throw new ProductNotFoundException("producto no encontrado");
         }
 
         if (!sellDetailService.existsSellDetailById(sellDetail.getId())) {
-            return buildResponseError(HttpStatus.NOT_FOUND,"venta no encontrada");
+            throw new SellDetailNotFoundException("venta no encontrada");
         }
 
-        return ResponseEntity.ok(sellDetailService.createSellDetail(sellDetail));
+        SellDetail updatedSellDetail = sellDetailService.updateSellDetail(id, sellDetail);
+        return EntityModel.of(updatedSellDetail,
+            WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getSellDetailById(id)).withSelfRel(),
+            WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getAllSellDetail()).withRel("all-sellDetails")
+        );
+
     }
 
     @DeleteMapping("/{id}")
@@ -119,7 +145,7 @@ public class SellDetailController {
         Long parsedId = validateInteger(id, "id");
 
         if (!sellDetailService.existsSellDetailById(parsedId)) {
-            return buildResponseError(HttpStatus.NOT_FOUND,"venta no encontrada");
+            throw new SellDetailNotFoundException("venta no encontrada");
         }
 
         sellDetailService.deleteSellDetail(parsedId);
@@ -141,7 +167,4 @@ public class SellDetailController {
         }
     }
     
-    private ResponseEntity<ErrorMessage> buildResponseError(HttpStatus status,String message){
-        return ResponseEntity.status(status).body(new ErrorMessage(status.value(),message));
-    }
 }

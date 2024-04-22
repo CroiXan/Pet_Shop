@@ -1,11 +1,12 @@
-package poc.petshop.demo.model;
+package poc.petshop.demo.controller;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.NOT_FOUND)
-public class SellDetailNotFoundException extends RuntimeException{
+public class ProductNotFoundException extends RuntimeException{
 
-    public SellDetailNotFoundException(String message){
+    public ProductNotFoundException(String message){
         super(message);
     }
 
