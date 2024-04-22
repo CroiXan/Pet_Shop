@@ -5,11 +5,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.web.bind.annotation.RestController;
 
 import poc.petshop.demo.model.ErrorMessage;
 import poc.petshop.demo.model.IncomeDetail;
+import poc.petshop.demo.model.ParsedLong;
 import poc.petshop.demo.model.Product;
 import poc.petshop.demo.model.SellDetail;
 import poc.petshop.demo.service.IncomeDetailService;
@@ -17,6 +19,9 @@ import poc.petshop.demo.service.ProductService;
 import poc.petshop.demo.service.SellDetailService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -43,116 +48,142 @@ public class ProductController {
     private ResponseEntity<ErrorMessage> error = ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage(HttpStatus.NOT_FOUND.value(),"producto no encontrado"));
     
     @GetMapping
-    public ResponseEntity<List<Product>> getProducts(){
-        return ResponseEntity.ok(productService.getAllProducts());
+    public CollectionModel<EntityModel<Product>> getProducts(){
+
+        List<Product> products = productService.getAllProducts();
+
+        List<EntityModel<Product>> productResource = products.stream()
+            .map(product -> EntityModel.of(product,
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getProductById(product.getId())).withSelfRel()
+            ))
+            .collect(Collectors.toList());
+        
+        WebMvcLinkBuilder linkTo = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getProducts());
+
+        CollectionModel<EntityModel<Product>> resources = CollectionModel.of(productResource, linkTo.withRel("product"));
+
+        return resources;
+
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getProductById(@PathVariable String id) {
+    public EntityModel<Product> getProductById(@PathVariable Long id) {
 
-        Long parsedId = validateInteger(id,"id");
-        Optional<Product> product = productService.getProductById(parsedId);
+        Optional<Product> product = productService.getProductById(id);
 
-        if (product.isEmpty()) {
-            return buildResponseError(HttpStatus.NOT_FOUND,"producto no encontrado");
+        if (product.isPresent()) {
+            return EntityModel.of(product.get(),
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getProductById(id)).withSelfRel(),
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getProducts()).withRel("all-products")
+            );
+        }else{
+            throw new ProductNotFoundException("Producto no encontrada con Id: " + id);
         }
-
-        return ResponseEntity.ok(product);
     
     }
 
     @PostMapping
-    public ResponseEntity<?> postAddProduct(@RequestBody Product product) {
+    public EntityModel<Product> postAddProduct(@RequestBody Product product) {
 
         if(product.getId() != null && product.getId() < 0L){
-            return buildResponseError(HttpStatus.BAD_REQUEST,"id no puede ser un valor negativo");
+            throw new ProductBadRequestException("id no puede ser un valor negativo");
         }
 
         product.setId(null);
 
         if (product.getName().length() == 0) {
-            return buildResponseError(HttpStatus.BAD_REQUEST,"name no puede estar vacio");
+            throw new ProductBadRequestException("name no puede estar vacio");
         }
 
         if (product.getDescription().length() == 0) {
-            return buildResponseError(HttpStatus.BAD_REQUEST,"description no puede estar vacio");
+            throw new ProductBadRequestException("description no puede estar vacio");
         }
 
         if (product.getPurchasePrice() <= 0) {
-            return buildResponseError(HttpStatus.BAD_REQUEST,"PurchasePrice no puede ser un valor negativo ni cero");
+            throw new ProductBadRequestException("PurchasePrice no puede ser un valor negativo ni cero");
         }
         
         if (product.getQuantity() <= 0) {
-            return buildResponseError(HttpStatus.BAD_REQUEST,"Quantity no puede ser un valor negativo ni cero");
+            throw new ProductBadRequestException("Quantity no puede ser un valor negativo ni cero");
         }
         
-        return ResponseEntity.ok(productService.createProduct(product));
+        Product createdProduct = productService.createProduct(product);
+        return EntityModel.of(createdProduct,
+            WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getProductById(createdProduct.getId())).withSelfRel(),
+            WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getProducts()).withRel("all-products")
+        );
+
     }
 
-    @PutMapping
-    public ResponseEntity<?> updateProduct(@RequestBody Product product) {
+    @PutMapping("/{id}")
+    public EntityModel<Product> updateProduct(@PathVariable Long id, @RequestBody Product product) {
         
         if (product.getId() == null) {
-            return buildResponseError(HttpStatus.BAD_REQUEST,"id no puede estar vacio");
+            throw new ProductBadRequestException("id no puede estar vacio");
         }
 
         if(product.getId() < 0L){
-            return buildResponseError(HttpStatus.BAD_REQUEST,"id no puede ser un valor negativo");
+            throw new ProductBadRequestException("id no puede ser un valor negativo");
         }
 
         if (product.getName().length() == 0) {
-            return buildResponseError(HttpStatus.BAD_REQUEST,"name no puede estar vacio");
+            throw new ProductBadRequestException("name no puede estar vacio");
         }
 
         if (product.getDescription().length() == 0) {
-            return buildResponseError(HttpStatus.BAD_REQUEST,"description no puede estar vacio");
+            throw new ProductBadRequestException("description no puede estar vacio");
         }
 
         if (product.getPurchasePrice() <= 0) {
-            return buildResponseError(HttpStatus.BAD_REQUEST,"PurchasePrice no puede ser un valor negativo ni cero");
+            throw new ProductBadRequestException("PurchasePrice no puede ser un valor negativo ni cero");
         }
         
         if (product.getQuantity() <= 0) {
-            return buildResponseError(HttpStatus.BAD_REQUEST,"Quantity no puede ser un valor negativo ni cero");
+            throw new ProductBadRequestException("Quantity no puede ser un valor negativo ni cero");
         }
 
         if (!productService.existsProductById(product.getId())) {
-            return buildResponseError(HttpStatus.NOT_FOUND,"producto no encontrado");
+            throw new ProductBadRequestException("producto no encontrado");
         }
         
-        return ResponseEntity.ok(productService.updateProduct(product.getId(),product));
+        Product updatedProduct = productService.updateProduct(id, product);
+        return EntityModel.of(updatedProduct,
+            WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getProductById(id)).withSelfRel(),
+            WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getProducts()).withRel("all-products")
+        );
+
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteProduct(@PathVariable String id){
         
-        Long parsedId = validateInteger(id, "id");
-
-        if(parsedId == -1){
-            return error;
+        ParsedLong parsedId = productService.validateLong(id, "id");
+        
+        if(!parsedId.isSuccess()){
+            throw new ProductBadRequestException(parsedId.getErrorMessage());
         }
 
-        if (!productService.existsProductById(parsedId)) {
-            return buildResponseError(HttpStatus.NOT_FOUND,"producto no encontrado");
+        if (!productService.existsProductById(parsedId.getResultLong())) {
+            throw new ProductBadRequestException("producto no encontrado");
         }
 
         List<IncomeDetail> incomeDetails = incomeDetailService.getIncomeDetails();
         List<SellDetail> sellDetails = sellDetailService.getSellDetails();
 
         for (SellDetail sellDetail : sellDetails) {
-            if (sellDetail.getIdProduct() == parsedId) {
+            if (sellDetail.getIdProduct() == parsedId.getResultLong()) {
                 sellDetailService.deleteSellDetail(sellDetail.getId());
             }
         }
         for (IncomeDetail incomeDetail : incomeDetails) {
-            if (incomeDetail.getIdProduct() == parsedId) {
+            if (incomeDetail.getIdProduct() == parsedId.getResultLong()) {
                 incomeDetailService.deleteIncomeDetail(incomeDetail.getId());
             }
         }
 
-        productService.deleteProduct(parsedId);
+        productService.deleteProduct(parsedId.getResultLong());
 
-        return ResponseEntity.ok().body("Product " + parsedId + " borrado.");
+        return ResponseEntity.ok().body("Product " + parsedId.getResultLong() + " borrado.");
     }
 
     @GetMapping("/{id}/profit/{year}-{month}-{day}")

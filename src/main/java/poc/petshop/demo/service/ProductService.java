@@ -3,6 +3,7 @@ package poc.petshop.demo.service;
 import java.util.List;
 import java.util.Optional;
 
+import poc.petshop.demo.model.ParsedLong;
 import poc.petshop.demo.model.Product;
 
 public interface ProductService {
@@ -12,4 +13,5 @@ public interface ProductService {
     Product updateProduct(Long id, Product product);
     void deleteProduct(Long id);
     boolean existsProductById(Long id);
+    ParsedLong validateLong(String intAsStr,String paramName);
 }
