@@ -6,7 +6,6 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import poc.petshop.demo.model.ParsedLong;
 import poc.petshop.demo.model.Product;
 import poc.petshop.demo.repository.ProductRepository;
 
@@ -50,27 +49,4 @@ public class ProductServiceImpl implements ProductService{
         return productRepository.existsById(id);
     }
 
-    @Override
-    public ParsedLong validateLong(String intAsStr,String paramName){
-
-        ParsedLong parsedLong = new ParsedLong();
-
-        try {
-
-            parsedLong.setSuccess(true);
-            Long parsedInt = Long.parseLong(intAsStr);
-
-            if(parsedInt < 0){
-                parsedLong.setSuccess(false);
-                parsedLong.setErrorMessage(paramName + " no puede ser negativo");
-            }
-
-            parsedLong.setResultLong(parsedInt);
-        } catch (Exception e) {
-            parsedLong.setErrorMessage(paramName + " no valido");
-            parsedLong.setSuccess(false);
-        }
-
-        return parsedLong;
-    }
 }

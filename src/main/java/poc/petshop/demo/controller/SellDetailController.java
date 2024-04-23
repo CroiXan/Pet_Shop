@@ -2,9 +2,11 @@ package poc.petshop.demo.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 
+import poc.petshop.demo.model.ParsedLong;
 import poc.petshop.demo.model.SellDetail;
 import poc.petshop.demo.service.ProductService;
 import poc.petshop.demo.service.SellDetailService;
+import poc.petshop.demo.service.ServiceUtils;
 
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,6 +35,8 @@ public class SellDetailController {
 
     @Autowired
     private SellDetailService sellDetailService;
+
+    private ServiceUtils serviceUtils;
 
     @GetMapping
     public CollectionModel<EntityModel<SellDetail>> getAllSellDetail() {
@@ -142,29 +146,19 @@ public class SellDetailController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteSellDetail(@PathVariable String id){
         
-        Long parsedId = validateInteger(id, "id");
+        ParsedLong parsedId = serviceUtils.validateLong(id, "id");
 
-        if (!sellDetailService.existsSellDetailById(parsedId)) {
+        if (!parsedId.isSuccess()) {
+            throw new SellDetailBadRequestException(parsedId.getErrorMessage());
+        }
+
+        if (!sellDetailService.existsSellDetailById(parsedId.getResultLong())) {
             throw new SellDetailNotFoundException("venta no encontrada");
         }
 
-        sellDetailService.deleteSellDetail(parsedId);
+        sellDetailService.deleteSellDetail(parsedId.getResultLong());
 
         return ResponseEntity.ok().body("Venta " + parsedId + " borrada.");
-    }
-
-    private Long validateInteger(String intAsStr,String paramName){
-        try {
-            Long parsedInt = Long.parseLong(intAsStr);
-
-            if(parsedInt < 0){
-                parsedInt = -1L;
-            }
-
-            return parsedInt;
-        } catch (Exception e) {
-            return -1L;
-        }
     }
     
 }
