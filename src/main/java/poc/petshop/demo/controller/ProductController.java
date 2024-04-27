@@ -12,7 +12,6 @@ import poc.petshop.demo.model.ParsedInt;
 import poc.petshop.demo.model.ParsedLong;
 import poc.petshop.demo.model.Product;
 import poc.petshop.demo.model.SellDetail;
-import poc.petshop.demo.service.IncomeDetailService;
 import poc.petshop.demo.service.ProductService;
 import poc.petshop.demo.service.SellDetailService;
 import poc.petshop.demo.service.ServiceUtils;
@@ -33,9 +32,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RestController
 @RequestMapping("/product")
 public class ProductController {
-
-    @Autowired
-    private IncomeDetailService incomeDetailService;
 
     @Autowired
     private ProductService productService;
@@ -165,17 +161,11 @@ public class ProductController {
             throw new ProductBadRequestException("producto no encontrado");
         }
 
-        List<IncomeDetail> incomeDetails = incomeDetailService.getIncomeDetails();
         List<SellDetail> sellDetails = sellDetailService.getSellDetails();
 
         for (SellDetail sellDetail : sellDetails) {
             if (sellDetail.getIdProduct() == parsedId.getResultLong()) {
                 sellDetailService.deleteSellDetail(sellDetail.getId());
-            }
-        }
-        for (IncomeDetail incomeDetail : incomeDetails) {
-            if (incomeDetail.getIdProduct() == parsedId.getResultLong()) {
-                incomeDetailService.deleteIncomeDetail(incomeDetail.getId());
             }
         }
 

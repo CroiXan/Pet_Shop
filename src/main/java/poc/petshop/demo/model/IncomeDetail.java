@@ -2,38 +2,22 @@ package poc.petshop.demo.model;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 
 @Entity
-@Table (name = "venta_detalle")
 public class IncomeDetail {
-
-    @Id
-    @GeneratedValue ( strategy = GenerationType.IDENTITY )
-    @Column(name="id_venta_detalle")
     private Long id;
 
-    @Column(name="id_producto")
     private Long idProduct;
 
-    @Column(name="calc_date")
     private LocalDateTime calcDateTime;
 
-    @Column(name="periodo")
     private String period;
 
-    @Column(name="income")
     private double income;
     
-    @Column(name="earning")
     private double earning;
 
-    @Column(name="sell_price")
     private double sellPrice;
     
     public IncomeDetail(LocalDateTime calcDateTime, String period, double income, double earning) {
