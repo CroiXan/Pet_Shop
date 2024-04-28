@@ -33,11 +33,12 @@ public class ProductServiceTest {
         product.setQuantity(50);
 
         when(productRepositoryMock.save(any())).thenReturn(product);
+        when(productRepositoryMock.existsById(any())).thenReturn(true);
 
         product.setPurchasePrice(3000);
         product.setQuantity(60);
 
-        Product createdProduct = productService.createProduct(product);
+        Product createdProduct = productService.updateProduct(product.getId(),product);
 
         assertNotNull(createdProduct);
 
