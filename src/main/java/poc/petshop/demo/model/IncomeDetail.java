@@ -2,9 +2,6 @@ package poc.petshop.demo.model;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Entity;
-
-@Entity
 public class IncomeDetail {
     private Long id;
 

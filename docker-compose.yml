@@ -1,0 +1,13 @@
+version: '1'
+services:
+  petshop:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - spring.datasource.url=jdbc:oracle:thin:@yfdycjnlo473alk4_tp?TNS_ADMIN=/app/oracle_wallet/
+      - spring.datasource.username=DSY2201
+      - spring.datasource.password=ActForm.DSY2
+    restart: always
