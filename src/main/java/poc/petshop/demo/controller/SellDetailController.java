@@ -36,7 +36,7 @@ public class SellDetailController {
     @Autowired
     private SellDetailService sellDetailService;
 
-    private ServiceUtils serviceUtils;
+    private ServiceUtils serviceUtils = new ServiceUtils();
 
     @GetMapping
     public CollectionModel<EntityModel<SellDetail>> getAllSellDetail() {
