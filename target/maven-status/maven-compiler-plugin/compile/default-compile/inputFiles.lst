@@ -6,8 +6,10 @@ C:\Users\GPD\Documents\GitHub\Pet_Shop\src\main\java\poc\petshop\demo\repository
 C:\Users\GPD\Documents\GitHub\Pet_Shop\src\main\java\poc\petshop\demo\model\Product.java
 C:\Users\GPD\Documents\GitHub\Pet_Shop\src\main\java\poc\petshop\demo\model\IncomeDetail.java
 C:\Users\GPD\Documents\GitHub\Pet_Shop\src\main\java\poc\petshop\demo\model\ParsedInt.java
+C:\Users\GPD\Documents\GitHub\Pet_Shop\src\main\java\poc\petshop\demo\model\LocalDateTimeTypeAdapter.java
 C:\Users\GPD\Documents\GitHub\Pet_Shop\src\main\java\poc\petshop\demo\controller\SellDetailNotFoundException.java
 C:\Users\GPD\Documents\GitHub\Pet_Shop\src\main\java\poc\petshop\demo\controller\ProductBadRequestException.java
+C:\Users\GPD\Documents\GitHub\Pet_Shop\src\main\java\poc\petshop\demo\model\ProfitParams.java
 C:\Users\GPD\Documents\GitHub\Pet_Shop\src\main\java\poc\petshop\demo\service\ProductService.java
 C:\Users\GPD\Documents\GitHub\Pet_Shop\src\main\java\poc\petshop\demo\service\SellDetailService.java
 C:\Users\GPD\Documents\GitHub\Pet_Shop\src\main\java\poc\petshop\demo\controller\ProductNotFoundException.java

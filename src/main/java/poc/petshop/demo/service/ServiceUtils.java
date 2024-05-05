@@ -79,6 +79,9 @@ public class ServiceUtils {
                 parsedInt.setErrorMessage(parsedLong.getErrorMessage());
                 parsedInt.setSuccess(false);
             }
+        }else if(monthLength == 0){
+            parsedInt.setResultInt(0);
+            parsedInt.setSuccess(true);
         }else{
             parsedInt.setSuccess(false);
             parsedInt.setErrorMessage("valor de mes no valido");
@@ -107,6 +110,9 @@ public class ServiceUtils {
                 parsedInt.setErrorMessage(parsedLong.getErrorMessage());
                 parsedInt.setSuccess(false);
             }
+        }else if(dayLength == 0){
+            parsedInt.setResultInt(0);
+            parsedInt.setSuccess(true);
         }else{
             parsedInt.setSuccess(false);
             parsedInt.setErrorMessage("valor de dia no valido");

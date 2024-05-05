@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: poc.petshop.demo.repository.SellDetailRepositoryTest
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.397 s -- in poc.petshop.demo.repository.SellDetailRepositoryTest

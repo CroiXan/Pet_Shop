@@ -6,7 +6,9 @@ poc\petshop\demo\model\IncomeDetail.class
 poc\petshop\demo\controller\SellDetailBadRequestException.class
 poc\petshop\demo\controller\ProductController.class
 poc\petshop\demo\DemoApplication.class
+poc\petshop\demo\model\LocalDateTimeTypeAdapter.class
 poc\petshop\demo\service\ProductServiceImpl.class
+poc\petshop\demo\model\ProfitParams.class
 poc\petshop\demo\repository\SellDetailRepository.class
 poc\petshop\demo\controller\SellDetailNotFoundException.class
 poc\petshop\demo\model\ParsedLong.class

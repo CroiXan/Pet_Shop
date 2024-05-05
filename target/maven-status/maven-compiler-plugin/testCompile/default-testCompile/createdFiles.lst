@@ -1,4 +1,6 @@
 poc\petshop\demo\controller\ProductControllerTest.class
+poc\petshop\demo\controller\SellDetailControllerTest.class
 poc\petshop\demo\DemoApplicationTests.class
 poc\petshop\demo\service\ServiceUtilsTest.class
+poc\petshop\demo\repository\SellDetailRepositoryTest.class
 poc\petshop\demo\service\ProductServiceTest.class

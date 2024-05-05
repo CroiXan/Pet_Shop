@@ -11,6 +11,7 @@ import poc.petshop.demo.model.IncomeDetail;
 import poc.petshop.demo.model.ParsedInt;
 import poc.petshop.demo.model.ParsedLong;
 import poc.petshop.demo.model.Product;
+import poc.petshop.demo.model.ProfitParams;
 import poc.petshop.demo.model.SellDetail;
 import poc.petshop.demo.service.ProductService;
 import poc.petshop.demo.service.SellDetailService;
@@ -39,7 +40,7 @@ public class ProductController {
     @Autowired
     private SellDetailService sellDetailService;
 
-    private ServiceUtils serviceUtils;
+    private ServiceUtils serviceUtils = new ServiceUtils();
 
     @GetMapping
     public CollectionModel<EntityModel<Product>> getProducts(){
@@ -172,6 +173,45 @@ public class ProductController {
         productService.deleteProduct(parsedId.getResultLong());
 
         return ResponseEntity.ok().body("Product " + parsedId.getResultLong() + " borrado.");
+    }
+
+    @PostMapping("/profit")
+    public EntityModel<IncomeDetail> calcProfitByProfitPrams(@RequestBody ProfitParams profitParams) {
+
+        ParsedLong parsedId = serviceUtils.validateLong(profitParams.getId(),"id");
+        ParsedInt parsedYear = serviceUtils.validateYear(profitParams.getYear());
+        ParsedInt parsedMonth = serviceUtils.validateMonth(profitParams.getMonth());
+        ParsedInt parsedDay = serviceUtils.validateDay(profitParams.getDay());
+
+        if (!parsedId.isSuccess()) {
+            throw new ProductBadRequestException(parsedId.getErrorMessage());
+        }
+
+        if (!parsedYear.isSuccess()) {
+            throw new ProductBadRequestException(parsedYear.getErrorMessage());
+        }
+
+        if (!parsedMonth.isSuccess()) {
+            throw new ProductBadRequestException(parsedMonth.getErrorMessage());
+        }
+
+        if (!parsedDay.isSuccess()) {
+            throw new ProductBadRequestException(parsedDay.getErrorMessage());
+        }
+
+        Optional<Product> product = productService.getProductById(parsedId.getResultLong());
+
+        if (product.isEmpty()) {
+            throw new ProductNotFoundException("producto no encontrado");
+        }
+
+        IncomeDetail incomeDetail = serviceUtils.calcEarning(product.get(), parsedYear.getResultInt(), parsedMonth.getResultInt(), parsedDay.getResultInt(),sellDetailService.getSellDetails());
+        
+        return EntityModel.of(incomeDetail,
+            WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getProductById(parsedId.getResultLong())).withSelfRel(),
+            WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getProducts()).withRel("all-products")
+        );
+        
     }
 
     @GetMapping("/{id}/profit/{year}-{month}-{day}")
