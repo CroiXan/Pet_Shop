@@ -3,7 +3,6 @@ package poc.petshop.demo.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.hamcrest.Matchers;
