@@ -46,7 +46,7 @@ public class ProductControllerTest {
         Gson gson = new Gson();
 
         mockMvc.perform(MockMvcRequestBuilders.post("/product")
-                .contentType(MediaType.APPLICATION_PROBLEM_JSON).content(gson.toJson(product)))
+                .contentType(MediaType.APPLICATION_JSON).content(gson.toJson(product)))
             .andExpect(MockMvcResultMatchers.status().isOk())
             .andExpect(MockMvcResultMatchers.jsonPath("$.name",Matchers.is("Saco de comida de Perro")))
             .andExpect(MockMvcResultMatchers.jsonPath("$.quantity",Matchers.is(30)));
